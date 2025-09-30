@@ -1,0 +1,25 @@
+# replica set garante que sempre tenha disponível a quantidade de pods desejada
+# caso um pod caia, o replicaset cria outro automaticamente
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: goserver
+  labels:
+    app: goserver
+# define o template do pod que o replicaset deve criar
+spec:
+  selector:
+    matchLabels:
+      app: goserver
+  replicas: 2
+  # template do pod, igual ao do pod.yml
+  template:
+    metadata:
+      name: goserver
+      labels:
+        app: goserver
+    spec:
+      containers:
+        - name: goserver
+          image: luccasspecht/go:latest
