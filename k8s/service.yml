@@ -8,7 +8,10 @@ spec:
   selector:
     app: goserver
   # https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services---service-types
-  type: ClusterIP
+  #type: ClusterIP -> IP interno do cluster (padrão)
+  #type: NodePort -> expõe a porta em cada Node do cluster (porta entre 30000-32767)
+  #type: LoadBalancer -> cria um balanceador de carga externo (gera um IP para acessar a aplicação de fora)
+  type: LoadBalancer
   ports:
     - name: goserver-service
       protocol: TCP

@@ -1,0 +1,14 @@
+# https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: goserver-hpa
+spec:
+  # indica qual recurso o HPA vai monitorar e escalar
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: goserver
+  minReplicas: 1
+  maxReplicas: 10 # limite maximo de pods que o HPA pode escalar
+  targetCPUUtilizationPercentage: 30 # se a CPU passar de 30% de uso, o HPA escala

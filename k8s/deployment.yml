@@ -8,7 +8,7 @@ spec:
   selector:
     matchLabels:
       app: goserver
-  replicas: 2
+  replicas: 1
   template:
     metadata:
       name: goserver
@@ -17,4 +17,76 @@ spec:
     spec:
       containers:
         - name: goserver
-          image: luccasspecht/go:v2
+          image: luccasspecht/go:v9.6
+          resources:
+            requests: #  MINIMO QUE o sistema que esta rodando exige no minimo para funcionar
+              # para chegar nesses numeros, devemos fazer teste de carga na aplicação e benchmarks
+              memory: '20Mi'
+              cpu: '0.05'
+            limits: # MAXIMO que o sistema(pod) pode consumir
+              memory: '25Mi'
+              cpu: '0.05'
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            failureThreshold: 30 # tenta por 30 vezes
+            periodSeconds: 2 # a cada 2s → 30*2 = 60s de tolerância
+
+          # DEPOIS QUE INICIOU, VERIFICA SE ESTÁ SAUDÁVEL
+          # https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            periodSeconds: 5
+            failureThreshold: 1
+            # Se testar apenas o sistema da API, tem que ser rapido.
+            # Agora se for um teste de integração por exemplo, pode levar mais tempo...
+            # Logo, esse timeoutSeconds pode deve ser bem pensando antes de ser definido.
+            timeoutSeconds: 1
+            successThreshold: 1
+            #initialDelaySeconds: 10 -> não faz mais sentido ter um delay aqui, pois o startupProbe já cuida disso
+
+          # E SE ESTÁ PRONTA PARA RECEBER TRAFEGO
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            periodSeconds: 3
+            failureThreshold: 1
+            #initialDelaySeconds: 10 -> não faz mais sentido ter um delay aqui, pois o startupProbe já cuida disso
+          envFrom:
+            - configMapRef:
+                name: goserver-env
+            - secretRef:
+                name: goserver-secret
+          volumeMounts:
+            - name: config
+              mountPath: '/go/opa'
+
+      volumes:
+        - name: config
+          configMap:
+            name: configmap-family
+            items:
+              - key: members
+                path: opa.txt
+
+          # DEMAIS EXEMPLOS DE USO DE CONFIGMAPS e ENV VARS
+          #envFrom:
+          # - configMapRef:
+          #    name: goserver-env
+          # env:
+          #- name: NAME
+          #value: 'Gopher' jeito hardcoded
+          # valueFrom:
+          #   configMapKeyRef:
+          #     name: goserver-env
+          #     key: NAME
+
+          #- name: AGE
+          #  valueFrom:
+          #   configMapKeyRef:
+          #   name: goserver-env
+          #   key: AGE
