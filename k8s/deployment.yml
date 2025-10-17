@@ -64,8 +64,13 @@ spec:
           volumeMounts:
             - name: config
               mountPath: '/go/opa'
+            - name: goserver-volume
+              mountPath: /go/pcv
 
       volumes:
+        - name: goserver-volume
+          persistentVolumeClaim:
+            claimName: goserver-pvc
         - name: config
           configMap:
             name: configmap-family
