@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec:
+  replicas: 4
+  # headless service ->  Serviço criado sem ip interno e serve apenas para apontamento de DNS para o pod especifico sendo o pod que contem o master (apenas write) ou os demais slaves(apenas leitura). Necessario para enviar a requisição para o pod especifico
+  serviceName: 'mysql-h'
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: root
